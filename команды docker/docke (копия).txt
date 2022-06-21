@@ -1,0 +1,84 @@
+<?php declare (strict_types = 1);
+
+error_reporting(E_ALL);
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+$port = (int) $argv[1];
+$env = $argv[2];
+$listen = '0.0.0.0';
+
+require_once __DIR__ . '/libs/Functions.php';
+require_once __DIR__ . '/Autoloader.php';
+$Autoloader = new Autoloader();
+$Autoloader->autoloadCore();
+use Libs\DB;
+use Libs\Cache;
+use Libs\Config;
+use Libs\Queue;
+use Models\Auth;
+use Swoole\Timer;
+use Aws\S3\S3Client;
+use memCrab\File\Yaml;
+use Swoole\HTTP\Server;
+use Swoole\HTTP\Request;
+use Swoole\HTTP\Response;
+use memCrab\Access\Access;
+use memCrab\Router\Router;
+use memCrab\Exceptions\AccessException;
+use memCrab\Exceptions\RoutingException;
+use Aws\Sqs\SqsClient;
+use Aws\Exception\AwsException;
+
+// $queueName = "SQS_QUEUE_NAME";
+ 
+
+
+// $client = new SqsClient([
+//     'profile' => 'default',
+//     'region' => 'us-west-2',
+//     'version' => '2012-11-05'
+// ]);
+
+// try {
+//     $result = $client->createQueue(array(
+//         'QueueName' => $queueName,
+//         'Attributes' => array(
+//             'DelaySeconds' => 5,
+//             'MaximumMessageSize' => 4096, // 4 KB
+//         ),
+//     ));
+//     var_dump($result);
+// } catch (AwsException $e) {
+//     // output error message if fails
+//     error_log($e->getMessage());
+// }
+
+
+
+
+    // Queue::obj()->setConnect('elasticmq', 'x', 'x', 'latest', 'http://sqs:9324');
+
+    // $config = [
+    //     'region' => 'elasticmq',
+    //     'version' => 'latest',
+    //     'debug'   => true,
+    //     'credentials' => [
+    //         'key' => 'x',
+    //         'secret' => 'x',
+    //     ]];
+    
+    //     $config['endpoint'] = 'http://sqs:9324';
+
+    // $client = new SqsClient($config);
+
+    // $result = $client->createQueue([
+    //     'QueueName' => 'testetstetste',
+    //     'Attributes' => [],
+    // ]);
+
+    // // var_dump( $result);
+
+    // // var_dump($client);
+
+    // exit("The end");

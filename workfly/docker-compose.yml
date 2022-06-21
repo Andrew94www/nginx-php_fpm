@@ -1,0 +1,163 @@
+version: '3.3'
+
+services:
+  # nginx:
+  #   image: nginx
+  #   ports:
+  #     - '443:443'
+  #   volumes:
+  #     - ./build/web/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./build/web/vhost.conf:/etc/nginx/sites-enable/vhost.conf:ro
+  #     - ./build/web/https.crt:/var/build/https.crt:ro
+  #     - ./build/web/https.key:/var/build/https.key:ro
+  #     - root:/var/www:delegated
+  #   healthcheck:
+  #     test: bash -c "</dev/tcp/nginx/443 && exit 0 || exit 1"
+  #     interval: 2s
+  #     timeout: 80s
+  #     retries: 10
+  #   depends_on:
+  #     - api
+  # redis:
+  #   image: redis:7.0
+  #   ports:
+  #     - '6379:6379'
+  #   healthcheck:
+  #     test: bash -c "</dev/tcp/redis/6379 && exit 0 || exit 1"
+  #     interval: 2s
+  #     timeout: 80s
+  #     retries: 10
+  #   environment:
+  #     REDIS_PASSWORD: dev
+  #   volumes:
+  #     - ./build/web/redis.conf:/usr/local/etc/redis/redis.conf
+  api:
+    image: memcrab/php:swoole-4.11
+    # image: openswoole/swoole:8.1-fpm
+    # platform: linux/x86_64
+    ports:
+      - '8000:8000'
+    healthcheck:
+      test: bash -c "</dev/tcp/api/8000 && exit 0 || exit 1"
+      interval: 3s
+      timeout: 30s
+      retries: 10
+    environment:
+      CONFIG_PATH: /var/www/configs/api.config.yaml
+    volumes:
+      - ./build/api/php.ini:/usr/local/etc/php.ini:ro
+      - ./build/api/api.config.yaml:/var/www/configs/api.config.yaml:ro
+      - ./api:/var/www/api:delegated
+    working_dir: /var/www/api
+    # depends_on:
+      # - aws
+    command: php server.php 8000 develpment
+  # db:
+  #   image: mysql:8
+  #   platform: linux/x86_64
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: dev
+  #     MYSQL_DATABASE: workfly
+  #     MYSQL_USER: dev
+  #     MYSQL_PASSWORD: dev
+  #   ports:
+  #     - '3306:3306'
+  #   healthcheck:
+  #     test: bash -c "</dev/tcp/db/3306 && exit 0 || exit 1"
+  #     interval: 3s
+  #     timeout: 90s
+  #     retries: 30
+  #   volumes:
+  #     - db:/var/lib/mysql:delegated
+  #     - ./build/db/my.cnf:/etc/mysql/my.cnf
+  #     - ./build/db/my.cnf:/usr/local/etc/my.cnf
+  #     - ./build/db/my.cnf:/etc/my.cnf
+  # elasticsearch:
+  #   image: docker.elastic.co/elasticsearch/elasticsearch:8.2.2
+  #   ports:
+  #     - 9200:9200
+  #   environment:
+  #     node.name: es01
+  #     cluster.name: es-docker-cluster
+  #     network.host: "0.0.0.0"
+  #     cluster.initial_master_nodes: es01
+  #     bootstrap.memory_lock: "true"
+  #     xpack.security.enabled: "false"
+  #     ingest.geoip.downloader.enabled: "false"
+  #     ES_JAVA_OPTS: -Xms512m -Xmx512m
+  #   healthcheck:
+  #     test: bash -c "</dev/tcp/elasticsearch/9200 && exit 0 || exit 1"
+  #     interval: 3s
+  #     timeout: 90s
+  #     retries: 30
+  #   ulimits:
+  #     memlock:
+  #       soft: -1
+  #       hard: -1
+  #   volumes:
+  #     - elastic:/usr/share/elasticsearch/data:delegated
+  # s3:
+  #   image: scality/s3server
+  #   ports:
+  #     - '8888:8888'
+  #     - '4572:4572'
+  #   volumes:
+  #     - './build/s3/config.json:/usr/src/app/config.json'
+  aws:
+    container_name: "aws"
+    image: localstack/localstack
+    # network_mode: bridge
+    ports:
+      - "4510-4559:4510-4559"  # external service port range
+      - "127.0.0.1:4566:4566"            # LocalStack Edge Proxy
+    environment:
+    - SKIP_SSL_CERT_DOWNLOAD=1
+    - DEBUG=false 
+    - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+  # aws:
+  #   image: localstack/localstack-full
+  #   network_mode: bridge
+  #   ports:
+  #     - "127.0.0.1:4510-4559:4510-4559"  # external service port range
+  #     - "127.0.0.1:4566:4566" 
+  #     - 8080:8080 
+  #     - 4576:4576
+  #   healthcheck:
+  #     test: bash -c "</dev/tcp/aws/4567 && exit 0 || exit 1"
+  #     interval: 10s
+  #     timeout: 50s
+  #     retries: 10
+  #   environment:
+  #     - DOCKER_HOST=unix:///var/run/docker.sock
+  #     - SERVICES=s3,sqs
+  #     - DEFAULT_REGION=eu-west-1
+  #     - SQS_PORT_EXTERNAL=4567
+  #     - HOSTNAME=localhost
+  #     - DATA_DIR=/tmp/localstack/data
+  #     - HOSTNAME_EXTERNAL=localhost
+  #     - DEBUG=true
+  #     - MAIN_CONTAINER_NAME=aws
+  #     - SQS_ENDPOINT_STRATEGY=off
+  #     - START_WEB=1
+  #     - PORT_WEB_UI=8080
+  #     - HOST_TMP_FOLDER=${TMPDIR}
+  #   volumes:
+  #     - "${TMPDIR:-/tmp}/localstack:/tmp/localstack"
+  #     - "/var/run/docker.sock:/var/run/docker.sock"
+
+# volumes:
+#   aws:
+#       driver: local
+  # elastic:
+  #   driver: local
+  # db:
+  #   driver: local
+  # root:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: $PWD
+  #     o: bind
