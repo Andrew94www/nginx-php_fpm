@@ -1,4 +1,4 @@
-docker compose run --rm api /bin/bash ||| :вход  в консоль  bash контейнера  api
+docker-compose run --rm api /bin/bash ||| :вход  в консоль  bash контейнера  api
 docker compose logs <имя контейнера>||| :отладка контейнера
 docker build . -f Dockerfile\:swoole-8.1 -t memcrab/php:swoole-8.1 сборка контейнера
 sudo aa-remove-unknown
